@@ -111,7 +111,7 @@ async def on_message(message):
             text = re.sub(pattern, '、画像', text)
             pattern = r'https?://[\w/:%#\$&\?\(\)~\.=\+\-]+'
             text = re.sub(pattern, '、URL', text)
-            text = message.author.displayName + '、' + text
+            text = message.author.name + '、' + text
             if text[-1:] == 'w' or text[-1:] == 'W' or text[-1:] == 'ｗ' or text[-1:] == 'W':
                 while text[-2:-1] == 'w' or text[-2:-1] == 'W' or text[-2:-1] == 'ｗ' or text[-2:-1] == 'W':
                     text = text[:-1]
@@ -162,6 +162,14 @@ async def on_voice_state_update(member, before, after):
                         tts(text)
                         source = discord.FFmpegPCMAudio('/tmp/message.mp3')
                         member.guild.voice_client.play(source)
+    elif before.channel != after.channel:
+        if member.guild.voice_client:
+            if member.guild.voice_client.channel is before.channel:
+                if len(member.guild.voice_client.channel.members) == 1 or member.voice.self_mute:
+                    await asyncio.sleep(0.5)
+                    await member.guild.voice_client.disconnect()
+                    await asyncio.sleep(0.5)
+                    await after.channel.connect()
 
 @client.event
 async def on_command_error(ctx, error):
