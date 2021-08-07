@@ -92,8 +92,8 @@ async def on_message(message):
             match = re.findall(pattern, text)
             for user_id in match:
                 user = await client.fetch_user(user_id)
-                user_name = f'、{user.display_name}へのメンション、'
-                text = re.sub(f'<@&{user_id}>', user_name, text)
+                user_name = f'、{user.name}へのメンション、'
+                text = re.sub(f'<@{display_name}>', user_name, text)
             pattern = r'<@&(\d+)>'
             match = re.findall(pattern, text)
             for role_id in match:
