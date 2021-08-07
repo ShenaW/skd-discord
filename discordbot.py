@@ -92,7 +92,7 @@ async def on_message(message):
             match = re.findall(pattern, text)
             for user_id in match:
                 user = await client.fetch_user(user_id)
-                user_name = f'、{user.name}へのメンション、'
+                user_name = f'、{user.display_name}へのメンション、'
                 text = re.sub(f'<@{user_id}>', user_name, text)
             pattern = r'<@&(\d+)>'
             match = re.findall(pattern, text)
@@ -139,7 +139,7 @@ async def on_voice_state_update(member, before, after):
                 await after.channel.connect()
             else:
                 if member.guild.voice_client.channel is after.channel:
-                    text = member.name + 'さんが入室しました'
+                    text = member.display_name + 'さんが入室しました'
                     while member.guild.voice_client.is_playing():
                         await asyncio.sleep(0.5)
                     tts(text)
@@ -156,7 +156,7 @@ async def on_voice_state_update(member, before, after):
                         await asyncio.sleep(0.5)
                         await member.guild.voice_client.disconnect()
                     else:
-                        text = member.name + 'さんが退室しました'
+                        text = member.display_name + 'さんが退室しました'
                         while member.guild.voice_client.is_playing():
                             await asyncio.sleep(0.5)
                         tts(text)
