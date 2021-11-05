@@ -4,6 +4,7 @@ from discord.ext import commands
 import os
 import traceback
 import re
+import emoji
 import json
 from google.cloud import texttospeech
 
@@ -12,6 +13,8 @@ tts_lang = os.getenv('DISCORD_BOT_LANG', default='ja-JP')
 tts_voice = os.getenv('DISCORD_BOT_VOICE', default='ja-JP-Wavenet-B')
 token = os.environ['DISCORD_BOT_TOKEN']
 client = commands.Bot(command_prefix=prefix)
+with open('emoji_ja.json', encoding='utf-8') as file:
+    emoji_dataset = json.load(file)
 
 google_type = os.environ['GOOGLE_TYPE']
 google_project_id = os.environ['GOOGLE_PROJECT_ID']
@@ -88,17 +91,22 @@ async def on_message(message):
         if message.guild.voice_client:
             text = message.content
             text = text.replace('\n', '、')
-            pattern = r'<@(\d+)>'
+            text = re.sub(r'[\U0000FE00-\U0000FE0F]', '', text)
+            text = re.sub(r'[\U0001F3FB-\U0001F3FF]', '', text)
+            for char in text:
+                if char in emoji.UNICODE_EMOJI['en'] and char in emoji_dataset:
+                    text = text.replace(char, emoji_dataset[char]['short_name'])
+            pattern = r'<@!?(\d+)>'
             match = re.findall(pattern, text)
             for user_id in match:
                 user = await client.fetch_user(user_id)
-                user_name = f'、{user.name}へのメンション、'
-                text = re.sub(f'<@{user_id}>', user_name, text)
+                user_name = f'、{user.display_name}へのメンション、'
+                text = re.sub(rf'<@!?{user_id}>', user_name, text)
             pattern = r'<@&(\d+)>'
             match = re.findall(pattern, text)
             for role_id in match:
                 role = message.guild.get_role(int(role_id))
-                role_name = f'、{role.name}へのメンション、'
+                role_name = f'、{role.display_name}へのメンション、'
                 text = re.sub(f'<@&{role_id}>', role_name, text)
             pattern = r'<:([a-zA-Z0-9_]+):\d+>'
             match = re.findall(pattern, text)
@@ -116,8 +124,11 @@ async def on_message(message):
                 while text[-2:-1] == 'w' or text[-2:-1] == 'W' or text[-2:-1] == 'ｗ' or text[-2:-1] == 'W':
                     text = text[:-1]
                 text = text[:-1] + '、ワラ'
-            if message.attachments:
-                text += '、添付ファイル'
+            for attachment in message.attachments:
+                if attachment.filename.endswith((".jpg", ".jpeg", ".gif", ".png", ".bmp")):
+                    text += '、画像'
+                else:
+                    text += '、添付ファイル'
             while message.guild.voice_client.is_playing():
                 await asyncio.sleep(0.5)
             tts(text)
