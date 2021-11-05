@@ -106,7 +106,7 @@ async def on_message(message):
             match = re.findall(pattern, text)
             for role_id in match:
                 role = message.guild.get_role(int(role_id))
-                role_name = f'、{role.display_name}へのメンション、'
+                role_name = f'、{role.name}へのメンション、'
                 text = re.sub(f'<@&{role_id}>', role_name, text)
             pattern = r'<:([a-zA-Z0-9_]+):\d+>'
             match = re.findall(pattern, text)
